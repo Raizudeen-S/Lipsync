@@ -114,13 +114,13 @@ def download_model():
 download_model()  # for huggingface deployment.
 
 
-from musetalk.utils.utils import get_file_type,get_video_fps,datagen
-from musetalk.utils.preprocessing import get_landmark_and_bbox,read_imgs,coord_placeholder,get_bbox_range
-from musetalk.utils.blending import get_image
-from musetalk.utils.utils import load_all_model
+from .musetalk.utils.utils import get_file_type,get_video_fps,datagen
+from .musetalk.utils.preprocessing import get_landmark_and_bbox,read_imgs,coord_placeholder,get_bbox_range
+from .musetalk.utils.blending import get_image
+from .musetalk.utils.utils import load_all_model
 
 
-def inference(audio_path,video_path,bbox_shift,output_vid_name):
+def inference(audio_path,video_path,output_vid_name,bbox_shift=0):
     args_dict={"result_dir":'./results/output', "fps":25, "batch_size":8, "output_vid_name":'', "use_saved_coord":False}#same with inferenece script
     args = Namespace(**args_dict)
 
