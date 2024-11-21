@@ -1,7 +1,7 @@
 import gradio as gr
 import json
 from multiprocessing import Process
-from MuseTalk.inference_musetalk import inference
+from inference_musetalk import inference
 import subprocess, platform
 import edge_tts
 from moviepy.editor import VideoFileClip
