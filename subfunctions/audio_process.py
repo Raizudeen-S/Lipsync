@@ -1,14 +1,14 @@
 import edge_tts
 from moviepy.editor import VideoFileClip
 import speech_recognition as sr
-import os
-
+import os, shutil
+ 
 def tts(input_text, voice, audio_file_path):
     # Function to handle the TTS
     com = edge_tts.Communicate(input_text, voice)
     com.save_sync(audio_file_path)
     return audio_file_path
-
+ 
 def audio_output_from_video(video_input, audio_file_path):
     if not os.path.exists(video_input):
         return False
@@ -26,15 +26,15 @@ def audio_output_from_video(video_input, audio_file_path):
     # Close the video and audio clip objects to free resources
     video_clip.close()
     audio_clip.close()
-
+ 
     return True
-
+ 
 def is_speech(video_input, audio_path):
-
+ 
     if audio_output_from_video(video_input, audio_path):
         # Initialize recognizer
         recognizer = sr.Recognizer()
-
+ 
         with sr.AudioFile(audio_path) as source:
             audio = recognizer.record(source)
         # Recognize speech using Google Web Speech API
@@ -47,3 +47,16 @@ def is_speech(video_input, audio_path):
             return False
     else:
         return False
+ 
+ 
+def empty_folder(folder):
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+ 

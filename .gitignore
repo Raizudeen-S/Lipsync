@@ -1,2 +1,6 @@
 RealESRGAN/__pycache__
 RealESRGAN/weights/*
+inputs/wav2lip_out/*
+results/*
+models
+__pycache__
