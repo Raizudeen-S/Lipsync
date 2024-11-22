@@ -1,6 +1,6 @@
 {
   "thumbnail": {
-    "male_images": ["inputs/faces/thumbnils/men1.png", "inputs/faces/thumbnils/men2.png", "inputs/faces/thumbnils/men3.png"],
+    "male_images": ["inputs/faces/thumbnils/male1.png", "inputs/faces/thumbnils/male2.png", "inputs/faces/thumbnils/male3.png"],
     "female_images": ["inputs/faces/thumbnils/female1.png", "inputs/faces/thumbnils/female2.png", "inputs/faces/thumbnils/female3.png"]
   },
   "voices": {

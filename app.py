@@ -1,13 +1,14 @@
 import json
 from multiprocessing import Process
 import subprocess, platform
-from inference_musetalk import inference
+# from inference_musetalk import inference
 from subfunctions.audio_process import tts, audio_output_from_video, is_speech, empty_folder
 from moviepy.editor import VideoFileClip, AudioFileClip
 from flask import Flask, request, jsonify, session, send_from_directory
 import os, shutil
  
 app = Flask(__name__)
+app.static_folder = "results"
 app.static_folder = "inputs"
  
 UPLOAD_FOLDER = "inputs/input_video/video.mp4"
@@ -117,15 +118,19 @@ def preview_video_process():
     avatar = request.json.get("image_choice")
     if not avatar:
         return jsonify({"message": "Avatar choice is missing"}), 400
-    session["video_gen_location"] = video_gen_location  # Store video generation location in session
- 
-    gender = session.get("gender")
-    images = male_images if gender == "male" else female_images
- 
-    if avatar not in images:
+
+    # Store video generation location in session
+    session["video_gen_location"] = video_gen_location  
+
+    # Validate and process the avatar choice
+    if "inputs/faces/thumbnails/" not in avatar:
         return jsonify({"message": "Invalid avatar choice"}), 400
-    image_index = images.index(avatar) + 1
-    preview_video = f"inputs/faces/{gender}{image_index}.mp4"
+
+    # Extract the base file name (e.g., male1 from inputs/faces/thumbnails/male1.png)
+    avatar_name = avatar.split("/")[-1].split(".")[0]
+
+    # Construct the preview video path and store it in the session
+    preview_video = f"inputs/faces/{avatar_name}.mp4"
     session["selected_image"] = preview_video
  
     preview_output = "temp/preview.mp4"
@@ -166,7 +171,7 @@ def preview_video_process():
  
     subprocess.call(command, shell=platform.system() != "Windows")
  
-    return send_from_directory(directory=os.path.dirname(preview_output), path=os.path.basename(preview_output))
+    return jsonify({"data": {"result": preview_output},"message": "Preview video generated successfully","success": True}), 200
  
  
 @app.route("/generate", methods=["POST"])
@@ -177,52 +182,53 @@ def generate_video_process():
     avatar = request.json.get("image_choice")
     if not avatar:
         return jsonify({"message": "Avatar choice is missing"}), 400
-    session["video_gen_location"] = video_gen_location  # Store video generation location in session
-    gender = session.get("gender")
-    images = male_images if gender == "male" else female_images
- 
-    if avatar not in images:
-        return jsonify({"message": "Invalid avatar choice"}), 400
-    image_index = images.index(avatar) + 1
-    preview_video = f"inputs/faces/{gender}{image_index}.mp4"
+
+    # Store video generation location in session
+    session["video_gen_location"] = video_gen_location  
+
+    # Extract the base file name (e.g., male1 from inputs/faces/thumbnails/male1.png)
+    avatar_name = avatar.split("/")[-1].split(".")[0]
+
+    # Construct the preview video path and store it in the session
+    preview_video = f"inputs/faces/{avatar_name}.mp4"
     session["selected_image"] = preview_video
-   
+
     try:
         video_input = UPLOAD_FOLDER
         selected_Video = session.get("selected_image")
-        # enchance_video_ouput = "result/output_out.mp4"
+        enchance_video_output = "inputs/input_video/outputxxx_men1_audio.mp4"
         final_output = "results/final_result.mp4"
  
-        enchance_video_ouput = inference(selected_Video,audio_file_path, 0)
+        # enchance_video_output = inference(selected_Video,audio_file_path, 0)
  
         if video_gen_location == "Bottom Right":
             command = """ffmpeg -i {} -i {} -filter_complex "[0:v]scale=1920:1080[first]; [1:v]scale=1920:1080[second]; [second]colorkey=0x00FF00:0.4:0.05[cleaned]; [cleaned]scale=iw/2.5:ih/2.5[scaled];
                 [first][scaled]overlay=W-w--100:H-h" -preset veryslow -map 1:a -c:a copy {} -y""".format(
-                video_input, enchance_video_ouput, final_output
+                video_input, enchance_video_output, final_output
             )
         elif video_gen_location == "Bottom Left":
             command = """ffmpeg -i {} -i {} -filter_complex "[0:v]scale=1920:1080[first]; [1:v]scale=1920:1080[second]; [second]colorkey=0x00FF00:0.4:0.05[cleaned]; [cleaned]scale=iw/2.5:ih/2.5[scaled];
                 [first][scaled]overlay=-100:H-h" -preset veryslow -map 1:a -c:a copy {} -y""".format(
-                video_input, enchance_video_ouput, final_output
+                video_input, enchance_video_output, final_output
             )
         elif video_gen_location == "Top Right":
             command = """ffmpeg -i {} -i {} -filter_complex "[0:v]scale=1920:1080[first]; [1:v]scale=1920:1080[second]; [second]colorkey=0x00FF00:0.4:0.05[cleaned]; [cleaned]scale=iw/2.5:ih/2.5[scaled];
                 [first][scaled]overlay=W-w--100:0" -preset veryslow -map 1:a -c:a copy {} -y""".format(
-                video_input, enchance_video_ouput, final_output
+                video_input, enchance_video_output, final_output
             )
         elif video_gen_location == "Top Left":
             command = """ffmpeg -i {} -i {} -filter_complex "[0:v]scale=1920:1080[first]; [1:v]scale=1920:1080[second]; [second]colorkey=0x00FF00:0.4:0.05[cleaned]; [cleaned]scale=iw/2.5:ih/2.5[scaled];
                 [first][scaled]overlay=-100:0" -preset veryslow -map 1:a -c:a copy {} -y""".format(
-                video_input, enchance_video_ouput, final_output
+                video_input, enchance_video_output, final_output
             )
         elif video_gen_location == "Right":
             command = """ffmpeg -i {} -i {} -filter_complex "[0:v]scale=1920:1080[first]; [1:v]scale=1920:1080[second]; [second]colorkey=0x00FF00:0.4:0.05[cleaned]; [cleaned]scale=iw/1.5:ih/1.5[scaled];  [first][scaled]overlay=W-w/1.4:H-h" -preset veryslow -map 1:a -c:a copy {} -y""".format(
-                video_input, enchance_video_ouput, final_output
+                video_input, enchance_video_output, final_output
             )
         elif video_gen_location == "Left":
             command = """ffmpeg -i {} -i {} -filter_complex "[0:v]scale=1920:1080[first]; [1:v]scale=1920:1080[second]; [second]colorkey=0x00FF00:0.4:0.05[cleaned];
                 [cleaned]scale=iw/1.5:ih/1.5[scaled];  [first][scaled]overlay=-W/5:H-h" -preset veryslow -map 1:a -c:a copy {} -y""".format(
-                video_input, enchance_video_ouput, final_output
+                video_input, enchance_video_output, final_output
             )
         else:
             return jsonify({"message": "Invalid choice"}), 400
@@ -231,9 +237,11 @@ def generate_video_process():
  
         # empty_folder("inputs/wav2lip_out")
         return send_from_directory(directory=os.path.dirname(final_output), path=os.path.basename(final_output))
+    
+        return jsonify({"data": {"result": preview_output},"message": "Preview video generated successfully","success": True}), 200
  
     finally:
         print("Generated Successfully")
  
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
