@@ -4,3 +4,4 @@ inputs/wav2lip_out/*
 results/*
 models
 __pycache__
+temp
